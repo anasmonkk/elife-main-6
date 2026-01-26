@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Leaf } from "lucide-react";
+import { Menu, X, Leaf, LogIn, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { href: "/", label: "Home", labelMl: "ഹോം" },
@@ -15,7 +16,7 @@ const navLinks = [
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-
+  const { user, isLoading } = useAuth();
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -50,6 +51,25 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          
+          {/* Auth buttons */}
+          {!isLoading && (
+            user ? (
+              <Button asChild variant="outline" size="sm" className="ml-2">
+                <Link to="/dashboard">
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="sm" className="ml-2">
+                <Link to="/auth">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Link>
+              </Button>
+            )
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -83,6 +103,29 @@ export function Header() {
                 <span className="ml-2 text-xs opacity-70">{link.labelMl}</span>
               </Link>
             ))}
+            
+            {/* Mobile auth buttons */}
+            {!isLoading && (
+              user ? (
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg text-sm font-medium bg-secondary text-foreground flex items-center gap-2"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  to="/auth"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg text-sm font-medium bg-primary text-primary-foreground flex items-center gap-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </Link>
+              )
+            )}
           </nav>
         </div>
       )}
