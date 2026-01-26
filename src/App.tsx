@@ -16,6 +16,8 @@ import Dashboard from "./pages/Dashboard";
 import Unauthorized from "./pages/Unauthorized";
 import AdminsManagement from "./pages/admin/AdminsManagement";
 import MembersManagement from "./pages/admin/MembersManagement";
+import LocationsManagement from "./pages/admin/LocationsManagement";
+import ClustersManagement from "./pages/admin/ClustersManagement";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +58,27 @@ const App = () => (
               }
             />
             
-            {/* Admin routes - Admin & Super Admin */}
+            {/* Admin routes - Super Admin only: Locations */}
+            <Route
+              path="/admin/locations"
+              element={
+                <ProtectedRoute requiredRoles={["super_admin"]}>
+                  <LocationsManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Admin routes - Admin & Super Admin: Clusters */}
+            <Route
+              path="/admin/clusters"
+              element={
+                <ProtectedRoute requiredRoles={["admin", "super_admin"]}>
+                  <ClustersManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Admin routes - Admin & Super Admin: Members */}
             <Route
               path="/admin/members"
               element={

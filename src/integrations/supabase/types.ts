@@ -198,6 +198,8 @@ export type Database = {
           is_active: boolean | null
           name: string
           name_ml: string | null
+          state: string | null
+          ward: string | null
         }
         Insert: {
           created_at?: string | null
@@ -206,6 +208,8 @@ export type Database = {
           is_active?: boolean | null
           name: string
           name_ml?: string | null
+          state?: string | null
+          ward?: string | null
         }
         Update: {
           created_at?: string | null
@@ -214,6 +218,8 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           name_ml?: string | null
+          state?: string | null
+          ward?: string | null
         }
         Relationships: []
       }

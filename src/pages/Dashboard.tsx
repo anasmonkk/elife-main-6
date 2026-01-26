@@ -9,16 +9,51 @@ import {
   MapPin, 
   Shield,
   LogOut,
-  Calendar
+  Calendar,
+  Layers
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface DivisionInfo {
+  id: string;
+  name: string;
+  description: string | null;
+}
 
 export default function Dashboard() {
-  const { user, roles, isSuperAdmin, isAdmin, signOut } = useAuth();
+  const { user, isSuperAdmin, isAdmin, signOut, adminData, adminToken } = useAuth();
+  const [divisionInfo, setDivisionInfo] = useState<DivisionInfo | null>(null);
+
+  useEffect(() => {
+    const fetchDivisionInfo = async () => {
+      if (adminData?.division_id) {
+        const { data } = await supabase
+          .from("divisions")
+          .select("id, name, description")
+          .eq("id", adminData.division_id)
+          .single();
+        
+        if (data) {
+          setDivisionInfo(data);
+        }
+      }
+    };
+
+    fetchDivisionInfo();
+  }, [adminData]);
 
   const getRoleLabel = () => {
     if (isSuperAdmin) return "Super Admin";
     if (isAdmin) return "Admin";
     return "Member";
+  };
+
+  const getDisplayName = () => {
+    if (adminToken && divisionInfo) {
+      return `Admin - ${divisionInfo.name}`;
+    }
+    return user?.email || "User";
   };
 
   return (
@@ -28,8 +63,13 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back, {user?.email}
+              Welcome back, {getDisplayName()}
             </p>
+            {divisionInfo && !isSuperAdmin && (
+              <p className="text-sm text-primary mt-1">
+                Managing: {divisionInfo.name}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
@@ -59,6 +99,26 @@ export default function Dashboard() {
               <CardContent>
                 <Button asChild className="w-full">
                   <Link to="/admin/members">View Members</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin & Super Admin: Manage Clusters */}
+          {isAdmin && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-primary" />
+                  Clusters
+                </CardTitle>
+                <CardDescription>
+                  Create and manage clusters
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link to="/admin/clusters">Manage Clusters</Link>
                 </Button>
               </CardContent>
             </Card>
