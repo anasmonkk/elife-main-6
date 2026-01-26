@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,7 @@ export function FormBuilder({ programId, questions, onQuestionsChange }: FormBui
   const [options, setOptions] = useState("");
 
   const { toast } = useToast();
+  const { adminToken } = useAuth();
 
   const sortedQuestions = [...questions].sort((a, b) => a.sort_order - b.sort_order);
 
@@ -105,24 +107,47 @@ export function FormBuilder({ programId, questions, onQuestionsChange }: FormBui
         sort_order: editingQuestion?.sort_order ?? sortedQuestions.length,
       };
 
-      if (editingQuestion) {
-        const { error } = await supabase
-          .from("program_form_questions")
-          .update(questionData)
-          .eq("id", editingQuestion.id);
+      const callAdminQuestionsApi = async (action: string, data: Record<string, unknown>) => {
+        const response = await supabase.functions.invoke("admin-form-questions", {
+          body: { action, data },
+          headers: adminToken ? { "x-admin-token": adminToken } : {},
+        });
 
-        if (error) throw error;
+        if (response.error) {
+          throw new Error(response.error.message || "API call failed");
+        }
+
+        if ((response.data as any)?.error) {
+          throw new Error((response.data as any).error);
+        }
+
+        return response.data;
+      };
+
+      if (editingQuestion) {
+        if (adminToken) {
+          await callAdminQuestionsApi("update", { id: editingQuestion.id, ...questionData });
+        } else {
+          const { error } = await supabase
+            .from("program_form_questions")
+            .update(questionData)
+            .eq("id", editingQuestion.id);
+          if (error) throw error;
+        }
 
         toast({
           title: "Question updated",
           description: "The form question has been updated.",
         });
       } else {
-        const { error } = await supabase
-          .from("program_form_questions")
-          .insert(questionData);
-
-        if (error) throw error;
+        if (adminToken) {
+          await callAdminQuestionsApi("create", questionData);
+        } else {
+          const { error } = await supabase
+            .from("program_form_questions")
+            .insert(questionData);
+          if (error) throw error;
+        }
 
         toast({
           title: "Question added",
@@ -146,12 +171,21 @@ export function FormBuilder({ programId, questions, onQuestionsChange }: FormBui
 
   const handleDelete = async (questionId: string) => {
     try {
-      const { error } = await supabase
-        .from("program_form_questions")
-        .delete()
-        .eq("id", questionId);
+      if (adminToken) {
+        const response = await supabase.functions.invoke("admin-form-questions", {
+          body: { action: "delete", data: { id: questionId } },
+          headers: { "x-admin-token": adminToken },
+        });
 
-      if (error) throw error;
+        if (response.error) throw new Error(response.error.message || "API call failed");
+        if ((response.data as any)?.error) throw new Error((response.data as any).error);
+      } else {
+        const { error } = await supabase
+          .from("program_form_questions")
+          .delete()
+          .eq("id", questionId);
+        if (error) throw error;
+      }
 
       toast({
         title: "Question deleted",
