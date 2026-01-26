@@ -1,1 +1,13 @@
 project_id = "qnucqwniloioxsowdqzj"
+
+[functions.admin-auth]
+verify_jwt = false
+
+[functions.admin-programs]
+verify_jwt = false
+
+[functions.admin-modules]
+verify_jwt = false
+
+[functions.admin-form-questions]
+verify_jwt = false
