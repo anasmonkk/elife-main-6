@@ -58,7 +58,7 @@ export default function ProgramsManagement() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const { adminData, isSuperAdmin, user } = useAuth();
+  const { adminData, isSuperAdmin, user, adminToken } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -102,23 +102,49 @@ export default function ProgramsManagement() {
         throw new Error("Please select a panchayath or enable 'All Panchayaths'");
       }
 
-      const createdBy = user?.id || adminData?.user_id;
-      if (!createdBy) {
-        throw new Error("User not authenticated");
+      // Check if we're using admin token or regular Supabase auth
+      if (adminToken) {
+        // Use edge function for admin token users
+        const { data: response, error: funcError } = await supabase.functions.invoke("admin-programs", {
+          body: {
+            action: "create",
+            data: {
+              name: programName.trim(),
+              description: description.trim() || null,
+              division_id: selectedDivision,
+              panchayath_id: allPanchayaths ? null : selectedPanchayath,
+              all_panchayaths: allPanchayaths,
+              start_date: startDate || null,
+              end_date: endDate || null,
+            },
+          },
+          headers: {
+            "x-admin-token": adminToken,
+          },
+        });
+
+        if (funcError) throw funcError;
+        if (!response.success) throw new Error(response.error || "Failed to create program");
+      } else {
+        // Use direct Supabase for regular authenticated users (super admin)
+        const createdBy = user?.id;
+        if (!createdBy) {
+          throw new Error("User not authenticated");
+        }
+
+        const { error: insertError } = await supabase.from("programs").insert({
+          name: programName.trim(),
+          description: description.trim() || null,
+          division_id: selectedDivision,
+          panchayath_id: allPanchayaths ? null : selectedPanchayath,
+          all_panchayaths: allPanchayaths,
+          start_date: startDate || null,
+          end_date: endDate || null,
+          created_by: createdBy,
+        });
+
+        if (insertError) throw insertError;
       }
-
-      const { error: insertError } = await supabase.from("programs").insert({
-        name: programName.trim(),
-        description: description.trim() || null,
-        division_id: selectedDivision,
-        panchayath_id: allPanchayaths ? null : selectedPanchayath,
-        all_panchayaths: allPanchayaths,
-        start_date: startDate || null,
-        end_date: endDate || null,
-        created_by: createdBy,
-      });
-
-      if (insertError) throw insertError;
 
       toast({
         title: "Program created",
