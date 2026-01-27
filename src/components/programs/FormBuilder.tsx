@@ -38,6 +38,7 @@ const QUESTION_TYPES = [
   { value: "dropdown", label: "Dropdown" },
   { value: "multiple_choice", label: "Single Choice (Radio)" },
   { value: "checkbox", label: "Multiple Choice (Checkbox)" },
+  { value: "multi_text", label: "Multiple Answers (Add More)" },
 ];
 
 export function FormBuilder({ programId, questions, onQuestionsChange }: FormBuilderProps) {

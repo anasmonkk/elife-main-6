@@ -102,12 +102,14 @@ export default function ProgramPublicPage() {
     for (const question of sortedQuestions) {
       if (question.is_required) {
         const answer = answers[question.id];
-        if (
+        // For multi_text, check if at least one non-empty value exists
+        const isEmpty =
           answer === undefined ||
           answer === null ||
           answer === "" ||
-          (Array.isArray(answer) && answer.length === 0)
-        ) {
+          (Array.isArray(answer) && (answer.length === 0 || answer.every((v) => !v?.trim())));
+        
+        if (isEmpty) {
           toast({
             title: "Required field",
             description: `Please fill in: ${question.question_text}`,
@@ -278,6 +280,53 @@ export default function ProgramPublicPage() {
             })}
           </div>
         );
+
+      case "multi_text": {
+        const textValues = (value as string[]) || [""];
+        return (
+          <div className="space-y-3">
+            {textValues.map((textVal, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground w-6">{idx + 1}.</span>
+                <Input
+                  value={textVal}
+                  onChange={(e) => {
+                    const newValues = [...textValues];
+                    newValues[idx] = e.target.value;
+                    updateAnswer(question.id, newValues);
+                  }}
+                  placeholder={`Answer ${idx + 1}`}
+                  className="flex-1"
+                />
+                {textValues.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive shrink-0"
+                    onClick={() => {
+                      const newValues = textValues.filter((_, i) => i !== idx);
+                      updateAnswer(question.id, newValues);
+                    }}
+                  >
+                    <span className="sr-only">Remove</span>
+                    ×
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => updateAnswer(question.id, [...textValues, ""])}
+              className="w-full"
+            >
+              + Add Another Answer
+            </Button>
+          </div>
+        );
+      }
 
       default:
         return (
