@@ -71,127 +71,131 @@ export default function SuperAdminDashboard() {
     <Layout>
       <div className="container py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Super Admin Dashboard</h1>
-            <p className="text-muted-foreground">
-              System-wide overview and management
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-sm font-medium">
-              <Shield className="h-4 w-4" />
-              Super Admin
-            </span>
-            <Button variant="outline" onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Super Admin</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                System-wide overview and management
+              </p>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs sm:text-sm font-medium">
+                <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                Super Admin
+              </span>
+              <Button variant="outline" size="sm" onClick={signOut} className="h-8 sm:h-9">
+                <LogOut className="h-4 w-4 mr-1.5 sm:mr-2" />
+                <span className="hidden xs:inline">Sign Out</span>
+                <span className="xs:hidden">Exit</span>
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Overview Stats */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
           <StatsCard
-            title="Total Admins"
+            title="Admins"
             value={stats.totalAdmins}
             description={`${stats.activeAdmins} active`}
             icon={Shield}
           />
           <StatsCard
-            title="Total Divisions"
+            title="Divisions"
             value={stats.totalDivisions}
             description={`${stats.activeDivisions} active`}
             icon={Building2}
           />
           <StatsCard
-            title="Total Programs"
+            title="Programs"
             value={stats.totalPrograms}
             description={`${stats.activePrograms} active`}
             icon={Calendar}
           />
           <StatsCard
-            title="Total Registrations"
+            title="Registrations"
             value={stats.totalRegistrations}
             icon={ClipboardList}
           />
         </div>
 
         {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link to="/admin/admins" className="flex flex-col items-center gap-2">
-              <Shield className="h-6 w-6" />
-              <span>Manage Admins</span>
+        <div className="grid gap-2 sm:gap-4 grid-cols-3 sm:grid-cols-5 mb-6 sm:mb-8">
+          <Button asChild variant="outline" className="h-auto py-3 sm:py-4">
+            <Link to="/admin/admins" className="flex flex-col items-center gap-1.5 sm:gap-2">
+              <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-[10px] sm:text-sm">Admins</span>
             </Link>
           </Button>
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link to="/admin/divisions" className="flex flex-col items-center gap-2">
-              <Building2 className="h-6 w-6" />
-              <span>Manage Divisions</span>
+          <Button asChild variant="outline" className="h-auto py-3 sm:py-4">
+            <Link to="/admin/divisions" className="flex flex-col items-center gap-1.5 sm:gap-2">
+              <Building2 className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-[10px] sm:text-sm">Divisions</span>
             </Link>
           </Button>
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link to="/admin/programs" className="flex flex-col items-center gap-2">
-              <Calendar className="h-6 w-6" />
-              <span>All Programs</span>
+          <Button asChild variant="outline" className="h-auto py-3 sm:py-4">
+            <Link to="/admin/programs" className="flex flex-col items-center gap-1.5 sm:gap-2">
+              <Calendar className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-[10px] sm:text-sm">Programs</span>
             </Link>
           </Button>
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link to="/admin/members" className="flex flex-col items-center gap-2">
-              <Users className="h-6 w-6" />
-              <span>All Members</span>
+          <Button asChild variant="outline" className="h-auto py-3 sm:py-4 hidden sm:flex">
+            <Link to="/admin/members" className="flex flex-col items-center gap-1.5 sm:gap-2">
+              <Users className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-[10px] sm:text-sm">Members</span>
             </Link>
           </Button>
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link to="/admin/locations" className="flex flex-col items-center gap-2">
-              <TrendingUp className="h-6 w-6" />
-              <span>Locations</span>
+          <Button asChild variant="outline" className="h-auto py-3 sm:py-4 hidden sm:flex">
+            <Link to="/admin/locations" className="flex flex-col items-center gap-1.5 sm:gap-2">
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-[10px] sm:text-sm">Locations</span>
             </Link>
           </Button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 mb-6 sm:mb-8">
           {/* Admins Overview */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 sm:pb-6">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   All Admins
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   Manage division administrators
                 </CardDescription>
               </div>
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                 <Link to="/admin/admins">View All</Link>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               {stats.admins.length === 0 ? (
                 <p className="text-muted-foreground text-sm py-4 text-center">
                   No admins found
                 </p>
               ) : (
-                <div className="space-y-4 max-h-[300px] overflow-y-auto">
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
                   {stats.admins.slice(0, 5).map((admin) => (
-                    <div key={admin.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div key={admin.id} className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
+                        <p className="font-medium truncate text-sm">
                           {admin.profile?.full_name || "N/A"}
                         </p>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           {admin.division?.name || "No Division"}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Badge variant={admin.is_active ? "default" : "secondary"}>
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                        <Badge variant={admin.is_active ? "default" : "secondary"} className="text-[10px] sm:text-xs">
                           {admin.is_active ? "Active" : "Inactive"}
                         </Badge>
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-7 w-7 p-0"
                           onClick={() => handleToggleAdmin(
                             admin.id, 
                             admin.is_active ?? true,
@@ -199,9 +203,9 @@ export default function SuperAdminDashboard() {
                           )}
                         >
                           {admin.is_active ? (
-                            <UserX className="h-4 w-4 text-destructive" />
+                            <UserX className="h-3.5 w-3.5 text-destructive" />
                           ) : (
-                            <UserCheck className="h-4 w-4 text-green-600" />
+                            <UserCheck className="h-3.5 w-3.5 text-green-600" />
                           )}
                         </Button>
                       </div>
@@ -214,50 +218,52 @@ export default function SuperAdminDashboard() {
 
           {/* Divisions Overview */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 sm:pb-6">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   All Divisions
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   Division performance overview
                 </CardDescription>
               </div>
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                 <Link to="/admin/divisions">View All</Link>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               {stats.divisions.length === 0 ? (
                 <p className="text-muted-foreground text-sm py-4 text-center">
                   No divisions found
                 </p>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Division</TableHead>
-                      <TableHead className="text-right">Programs</TableHead>
-                      <TableHead className="text-right">Members</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {stats.divisions.slice(0, 5).map((div) => (
-                      <TableRow key={div.id}>
-                        <TableCell className="font-medium">{div.name}</TableCell>
-                        <TableCell className="text-right">{div.programCount}</TableCell>
-                        <TableCell className="text-right">{div.memberCount}</TableCell>
-                        <TableCell>
-                          <Badge variant={div.is_active ? "default" : "secondary"} className="text-xs">
-                            {div.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
+                <div className="overflow-x-auto -mx-3 sm:mx-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs sm:text-sm">Division</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Prog.</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm hidden sm:table-cell">Members</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {stats.divisions.slice(0, 5).map((div) => (
+                        <TableRow key={div.id}>
+                          <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">{div.name}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-4">{div.programCount}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-4 hidden sm:table-cell">{div.memberCount}</TableCell>
+                          <TableCell className="py-2 sm:py-4">
+                            <Badge variant={div.is_active ? "default" : "secondary"} className="text-[10px] sm:text-xs">
+                              {div.is_active ? "Active" : "Off"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -265,25 +271,25 @@ export default function SuperAdminDashboard() {
 
         {/* Recent Activity */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Recent Activity
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Latest system activity logs
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 sm:px-6">
             {stats.recentActivity.length === 0 ? (
               <p className="text-muted-foreground text-sm py-4 text-center">
                 No recent activity
               </p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {stats.recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-4 p-3 rounded-lg border">
-                    <div className={`p-2 rounded-full ${
+                  <div key={activity.id} className="flex items-start gap-3 p-2.5 sm:p-3 rounded-lg border">
+                    <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
                       activity.type === "registration" 
                         ? "bg-green-100 dark:bg-green-900/30" 
                         : activity.type === "program"
@@ -291,17 +297,17 @@ export default function SuperAdminDashboard() {
                         : "bg-amber-100 dark:bg-amber-900/30"
                     }`}>
                       {activity.type === "registration" ? (
-                        <ClipboardList className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <ClipboardList className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
                       ) : activity.type === "program" ? (
-                        <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
                       ) : (
-                        <Shield className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm">{activity.description}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                        <Clock className="h-3 w-3" />
+                      <p className="text-xs sm:text-sm">{activity.description}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                       </p>
                     </div>
