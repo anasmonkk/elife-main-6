@@ -59,7 +59,7 @@ export function useAdminStats(): AdminStats {
           return;
         }
 
-        // Fetch programs
+        // Fetch all data in parallel instead of sequentially
         let programsQuery = supabase
           .from("programs")
           .select("id, is_active, panchayath_id, all_panchayaths");
@@ -67,65 +67,96 @@ export function useAdminStats(): AdminStats {
         if (!isSuperAdmin && divisionId) {
           programsQuery = programsQuery.eq("division_id", divisionId);
         }
-        
-        const { data: programs, error: programsError } = await programsQuery;
-        if (programsError) throw programsError;
 
-        const programIds = programs?.map(p => p.id) || [];
-        const activePrograms = programs?.filter(p => p.is_active).length || 0;
-
-        // Fetch registrations for these programs
-        let registrationsCount = 0;
-        if (programIds.length > 0) {
-          const { count, error: regError } = await supabase
-            .from("program_registrations")
-            .select("*", { count: "exact", head: true })
-            .in("program_id", programIds);
-          
-          if (regError) throw regError;
-          registrationsCount = count || 0;
-        }
-
-        // Fetch members
         let membersQuery = supabase
           .from("members")
-          .select("*", { count: "exact", head: true });
+          .select("id, cluster_id", { count: "exact" });
         
         if (!isSuperAdmin && divisionId) {
           membersQuery = membersQuery.eq("division_id", divisionId);
         }
-        
-        const { count: membersCount, error: membersError } = await membersQuery;
-        if (membersError) throw membersError;
 
-        // Fetch panchayath-wise stats
-        const { data: panchayaths, error: panchError } = await supabase
+        const panchayathsQuery = supabase
           .from("panchayaths")
           .select("id, name")
           .eq("is_active", true);
-        
+
+        const clustersQuery = supabase
+          .from("clusters")
+          .select(`id, name, panchayath:panchayaths(name)`)
+          .eq("is_active", true);
+
+        // Execute all queries in parallel
+        const [
+          { data: programs, error: programsError },
+          { data: members, count: membersCount, error: membersError },
+          { data: panchayaths, error: panchError },
+          { data: clusters, error: clusterError }
+        ] = await Promise.all([
+          programsQuery,
+          membersQuery,
+          panchayathsQuery,
+          clustersQuery
+        ]);
+
+        if (programsError) throw programsError;
+        if (membersError) throw membersError;
         if (panchError) throw panchError;
+        if (clusterError) throw clusterError;
 
-        const panchayathStats: PanchayathStats[] = [];
-        for (const panchayath of panchayaths || []) {
-          // Count programs for this panchayath
-          const panchayathPrograms = programs?.filter(
-            p => p.panchayath_id === panchayath.id || p.all_panchayaths
-          ).length || 0;
+        const programIds = programs?.map(p => p.id) || [];
+        const activePrograms = programs?.filter(p => p.is_active).length || 0;
 
-          // Count registrations for panchayath programs
-          const panchayathProgramIds = programs?.filter(
-            p => p.panchayath_id === panchayath.id || p.all_panchayaths
-          ).map(p => p.id) || [];
-
-          let panchayathRegs = 0;
-          if (panchayathProgramIds.length > 0) {
-            const { count } = await supabase
+        // Fetch registrations and recent registrations in parallel
+        const registrationsPromise = programIds.length > 0
+          ? supabase
               .from("program_registrations")
-              .select("*", { count: "exact", head: true })
-              .in("program_id", panchayathProgramIds);
-            panchayathRegs = count || 0;
+              .select("id, program_id, created_at, answers")
+              .in("program_id", programIds)
+              .order("created_at", { ascending: false })
+          : Promise.resolve({ data: [], error: null });
+
+        const { data: allRegistrations, error: regError } = await registrationsPromise;
+        if (regError) throw regError;
+
+        const registrationsCount = allRegistrations?.length || 0;
+
+        // Calculate panchayath stats from already fetched data (no additional queries)
+        const panchayathStats: PanchayathStats[] = [];
+        const programsByPanchayath = new Map<string, string[]>();
+        
+        // Group programs by panchayath
+        for (const program of programs || []) {
+          if (program.all_panchayaths) {
+            // Add to all panchayaths
+            for (const p of panchayaths || []) {
+              const existing = programsByPanchayath.get(p.id) || [];
+              if (!existing.includes(program.id)) {
+                programsByPanchayath.set(p.id, [...existing, program.id]);
+              }
+            }
+          } else if (program.panchayath_id) {
+            const existing = programsByPanchayath.get(program.panchayath_id) || [];
+            if (!existing.includes(program.id)) {
+              programsByPanchayath.set(program.panchayath_id, [...existing, program.id]);
+            }
           }
+        }
+
+        // Count registrations per panchayath from fetched data
+        const registrationsByProgram = new Map<string, number>();
+        for (const reg of allRegistrations || []) {
+          const count = registrationsByProgram.get(reg.program_id) || 0;
+          registrationsByProgram.set(reg.program_id, count + 1);
+        }
+
+        for (const panchayath of panchayaths || []) {
+          const panchayathProgramIds = programsByPanchayath.get(panchayath.id) || [];
+          const panchayathPrograms = panchayathProgramIds.length;
+          const panchayathRegs = panchayathProgramIds.reduce(
+            (sum, pid) => sum + (registrationsByProgram.get(pid) || 0), 
+            0
+          );
 
           if (panchayathPrograms > 0 || panchayathRegs > 0) {
             panchayathStats.push({
@@ -137,57 +168,47 @@ export function useAdminStats(): AdminStats {
           }
         }
 
-        // Fetch cluster-wise stats
-        const { data: clusters, error: clusterError } = await supabase
-          .from("clusters")
-          .select(`
-            id,
-            name,
-            panchayath:panchayaths(name)
-          `)
-          .eq("is_active", true);
-        
-        if (clusterError) throw clusterError;
+        // Calculate cluster stats from already fetched members (no additional queries)
+        const membersByCluster = new Map<string, number>();
+        for (const member of members || []) {
+          const count = membersByCluster.get(member.cluster_id) || 0;
+          membersByCluster.set(member.cluster_id, count + 1);
+        }
 
         const clusterStats: ClusterStats[] = [];
         for (const cluster of clusters || []) {
-          let memberQuery = supabase
-            .from("members")
-            .select("*", { count: "exact", head: true })
-            .eq("cluster_id", cluster.id);
-          
-          if (!isSuperAdmin && divisionId) {
-            memberQuery = memberQuery.eq("division_id", divisionId);
-          }
-
-          const { count } = await memberQuery;
-          
-          if ((count || 0) > 0) {
+          const memberCount = membersByCluster.get(cluster.id) || 0;
+          if (memberCount > 0) {
             clusterStats.push({
               id: cluster.id,
               name: cluster.name,
-              members: count || 0,
+              members: memberCount,
               panchayath_name: (cluster.panchayath as any)?.name || "Unknown",
             });
           }
         }
 
-        // Fetch recent registrations for the admin's programs
+        // Build recent registrations from fetched data
         const recentRegistrations: RecentRegistration[] = [];
-        if (programIds.length > 0) {
-          const { data: recentRegs } = await supabase
-            .from("program_registrations")
-            .select("id, created_at, answers, program:programs(name)")
-            .in("program_id", programIds)
-            .order("created_at", { ascending: false })
-            .limit(10);
+        const programMap = new Map(programs?.map(p => [p.id, p]) || []);
+        
+        // Get program names for recent registrations
+        const recentRegs = (allRegistrations || []).slice(0, 10);
+        if (recentRegs.length > 0) {
+          const recentProgramIds = [...new Set(recentRegs.map(r => r.program_id))];
+          const { data: programNames } = await supabase
+            .from("programs")
+            .select("id, name")
+            .in("id", recentProgramIds);
           
-          for (const reg of recentRegs || []) {
+          const programNameMap = new Map(programNames?.map(p => [p.id, p.name]) || []);
+          
+          for (const reg of recentRegs) {
             const answers = reg.answers as Record<string, any> || {};
             const registrantName = answers.full_name || answers.name || "Unknown";
             recentRegistrations.push({
               id: reg.id,
-              program_name: (reg.program as any)?.name || "Unknown Program",
+              program_name: programNameMap.get(reg.program_id) || "Unknown Program",
               registrant_name: registrantName,
               created_at: reg.created_at,
             });
