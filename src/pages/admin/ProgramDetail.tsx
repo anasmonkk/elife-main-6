@@ -211,63 +211,70 @@ export default function ProgramDetail() {
     <Layout>
       <div className="container py-8">
         {/* Header */}
-        <div className="flex items-start gap-4 mb-6">
-          <Button asChild variant="ghost" size="icon">
-            <Link to="/admin/programs">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">{program.name}</h1>
-              <Badge
-                variant="secondary"
-                style={{
-                  backgroundColor: program.division?.color || undefined,
-                  color: program.division?.color ? "white" : undefined,
-                }}
-              >
-                {program.division?.name}
-              </Badge>
-              <Badge variant={program.is_active ? "default" : "secondary"}>
-                {program.is_active ? "Active" : "Inactive"}
-              </Badge>
-            </div>
-            {program.description && (
-              <p className="text-muted-foreground mb-2">{program.description}</p>
-            )}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              {program.start_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="icon" className="shrink-0">
+              <Link to="/admin/programs">
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </Button>
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground line-clamp-2">{program.name}</h1>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="secondary"
+              style={{
+                backgroundColor: program.division?.color || undefined,
+                color: program.division?.color ? "white" : undefined,
+              }}
+            >
+              {program.division?.name}
+            </Badge>
+            <Badge variant={program.is_active ? "default" : "secondary"}>
+              {program.is_active ? "Active" : "Inactive"}
+            </Badge>
+          </div>
+
+          {program.description && (
+            <p className="text-sm text-muted-foreground">{program.description}</p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            {program.start_date && (
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4 shrink-0" />
+                <span className="text-xs sm:text-sm">
                   {format(new Date(program.start_date), "MMM d, yyyy")}
                   {program.end_date && ` - ${format(new Date(program.end_date), "MMM d, yyyy")}`}
                 </span>
-              )}
-              {program.panchayath?.name && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {program.panchayath.name}
-                </span>
-              )}
-              {program.all_panchayaths && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  All Panchayaths
-                </span>
-              )}
-            </div>
+              </span>
+            )}
+            {program.panchayath?.name && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span className="text-xs sm:text-sm">{program.panchayath.name}</span>
+              </span>
+            )}
+            {program.all_panchayaths && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span className="text-xs sm:text-sm">All Panchayaths</span>
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={openEditDialog}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={openEditDialog}>
+              <Edit className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Edit</span>
             </Button>
-            <Button variant="outline" onClick={toggleProgramStatus}>
+            <Button variant="outline" size="sm" onClick={toggleProgramStatus}>
               {program.is_active ? "Deactivate" : "Activate"}
             </Button>
             <Button
               variant="outline"
+              size="sm"
               className="text-destructive hover:text-destructive"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
@@ -303,21 +310,40 @@ export default function ProgramDetail() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="modules" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="modules" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Modules
-            </TabsTrigger>
-            {hasAnnouncements && <TabsTrigger value="announcements">Announcements</TabsTrigger>}
-            {hasRegistration && <TabsTrigger value="registration">Registration Form</TabsTrigger>}
-            {hasAdvertisement && <TabsTrigger value="advertisements">Advertisements</TabsTrigger>}
-            {hasRegistration && (
-              <TabsTrigger value="registrations">
-                Registrations ({program.registration_count || 0})
+        <Tabs defaultValue="modules" className="space-y-4 sm:space-y-6">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex w-auto min-w-full sm:w-auto">
+              <TabsTrigger value="modules" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>Modules</span>
               </TabsTrigger>
-            )}
-          </TabsList>
+              {hasAnnouncements && (
+                <TabsTrigger value="announcements" className="text-xs sm:text-sm px-2 sm:px-3">
+                  <span className="hidden sm:inline">Announcements</span>
+                  <span className="sm:hidden">News</span>
+                </TabsTrigger>
+              )}
+              {hasRegistration && (
+                <TabsTrigger value="registration" className="text-xs sm:text-sm px-2 sm:px-3">
+                  <span className="hidden sm:inline">Registration Form</span>
+                  <span className="sm:hidden">Form</span>
+                </TabsTrigger>
+              )}
+              {hasAdvertisement && (
+                <TabsTrigger value="advertisements" className="text-xs sm:text-sm px-2 sm:px-3">
+                  <span className="hidden sm:inline">Advertisements</span>
+                  <span className="sm:hidden">Ads</span>
+                </TabsTrigger>
+              )}
+              {hasRegistration && (
+                <TabsTrigger value="registrations" className="text-xs sm:text-sm px-2 sm:px-3">
+                  <span className="hidden sm:inline">Registrations</span>
+                  <span className="sm:hidden">Regs</span>
+                  <span className="ml-1">({program.registration_count || 0})</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
 
           <TabsContent value="modules">
             <ModuleManager
@@ -372,70 +398,74 @@ export default function ProgramDetail() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="text-left">
             <DialogTitle>Edit Program</DialogTitle>
             <DialogDescription>Update program details</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="editName">Program Name *</Label>
+              <Label htmlFor="editName" className="text-sm font-medium">Program Name *</Label>
               <Input
                 id="editName"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
+                className="text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="editDescription">Description</Label>
+              <Label htmlFor="editDescription" className="text-sm font-medium">Description</Label>
               <Textarea
                 id="editDescription"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={3}
+                className="text-base resize-none"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="editStartDate">Start Date</Label>
+                <Label htmlFor="editStartDate" className="text-sm font-medium">Start Date</Label>
                 <Input
                   id="editStartDate"
                   type="date"
                   value={editStartDate}
                   onChange={(e) => setEditStartDate(e.target.value)}
+                  className="text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="editEndDate">End Date</Label>
+                <Label htmlFor="editEndDate" className="text-sm font-medium">End Date</Label>
                 <Input
                   id="editEndDate"
                   type="date"
                   value={editEndDate}
                   onChange={(e) => setEditEndDate(e.target.value)}
+                  className="text-base"
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 py-2">
               <Switch
                 id="editIsActive"
                 checked={editIsActive}
                 onCheckedChange={setEditIsActive}
               />
-              <Label htmlFor="editIsActive">Program is active</Label>
+              <Label htmlFor="editIsActive" className="cursor-pointer">Program is active</Label>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleUpdateProgram} disabled={isUpdating}>
+            <Button onClick={handleUpdateProgram} disabled={isUpdating} className="w-full sm:w-auto">
               {isUpdating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Saving...
                 </>
               ) : (
-                "Save Changes"
+                "Save"
               )}
             </Button>
           </DialogFooter>

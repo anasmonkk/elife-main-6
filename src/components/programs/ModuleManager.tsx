@@ -149,40 +149,29 @@ export function ModuleManager({ programId, modules, onModulesChange }: ModuleMan
           return (
             <div
               key={moduleType.type}
-              className="flex items-start justify-between p-4 border rounded-lg"
+              className="p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0"
             >
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-muted rounded-md">
-                  <Icon className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Label className="font-medium">{moduleType.label}</Label>
-                    {isEnabled && (
-                      <Badge variant={isPublished ? "default" : "secondary"}>
-                        {isPublished ? "Published" : "Draft"}
-                      </Badge>
-                    )}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="p-1.5 sm:p-2 bg-muted rounded-md shrink-0">
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-muted-foreground">{moduleType.description}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                {isEnabled && (
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor={`publish-${moduleType.type}`} className="text-sm">
-                      Publish
-                    </Label>
-                    <Switch
-                      id={`publish-${moduleType.type}`}
-                      checked={isPublished}
-                      onCheckedChange={() => handlePublishToggle(module!.id, isPublished)}
-                      disabled={isUpdating === module?.id}
-                    />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <Label className="font-medium text-sm sm:text-base">{moduleType.label}</Label>
+                      {isEnabled && (
+                        <Badge variant={isPublished ? "default" : "secondary"} className="text-xs">
+                          {isPublished ? "Published" : "Draft"}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{moduleType.description}</p>
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Label htmlFor={`enable-${moduleType.type}`} className="text-sm">
+                </div>
+                
+                {/* Enable toggle always visible on right */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Label htmlFor={`enable-${moduleType.type}`} className="text-xs sm:text-sm hidden sm:inline">
                     Enable
                   </Label>
                   <Switch
@@ -193,6 +182,36 @@ export function ModuleManager({ programId, modules, onModulesChange }: ModuleMan
                   />
                 </div>
               </div>
+              
+              {/* Publish toggle shown below on mobile when enabled */}
+              {isEnabled && (
+                <div className="flex items-center justify-end gap-2 pt-2 border-t sm:hidden">
+                  <Label htmlFor={`publish-mobile-${moduleType.type}`} className="text-xs">
+                    Publish to public
+                  </Label>
+                  <Switch
+                    id={`publish-mobile-${moduleType.type}`}
+                    checked={isPublished}
+                    onCheckedChange={() => handlePublishToggle(module!.id, isPublished)}
+                    disabled={isUpdating === module?.id}
+                  />
+                </div>
+              )}
+              
+              {/* Desktop publish toggle */}
+              {isEnabled && (
+                <div className="hidden sm:flex items-center gap-2 justify-end -mt-8">
+                  <Label htmlFor={`publish-${moduleType.type}`} className="text-sm">
+                    Publish
+                  </Label>
+                  <Switch
+                    id={`publish-${moduleType.type}`}
+                    checked={isPublished}
+                    onCheckedChange={() => handlePublishToggle(module!.id, isPublished)}
+                    disabled={isUpdating === module?.id}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
