@@ -144,6 +144,12 @@ export function useProgramRegistrations(programId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
   const { adminToken, isSuperAdmin, session } = useAuth();
 
+  // Reset registrations when programId changes to prevent showing stale data
+  useEffect(() => {
+    setRegistrations([]);
+    setError(null);
+  }, [programId]);
+
   const fetchRegistrations = useCallback(async () => {
     if (!programId) {
       setIsLoading(false);
