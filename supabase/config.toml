@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.admin-registrations]
 verify_jwt = false
+
+[functions.pennyekart-agents]
+verify_jwt = false
