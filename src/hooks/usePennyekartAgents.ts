@@ -37,14 +37,12 @@ export interface AgentFilters {
 }
 
 function getAdminToken(): string | null {
-  const stored = localStorage.getItem("admin_session");
-  if (!stored) return null;
-  try {
-    const session = JSON.parse(stored);
-    return session.token || null;
-  } catch {
-    return null;
+  // Check for admin token (uses elife_admin_token key from useAuth)
+  const adminToken = localStorage.getItem("elife_admin_token");
+  if (adminToken) {
+    return adminToken;
   }
+  return null;
 }
 
 export function usePennyekartAgents(filters?: AgentFilters) {
