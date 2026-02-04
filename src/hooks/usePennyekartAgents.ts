@@ -36,6 +36,17 @@ export interface AgentFilters {
   search?: string;
 }
 
+function getAdminToken(): string | null {
+  const stored = localStorage.getItem("admin_session");
+  if (!stored) return null;
+  try {
+    const session = JSON.parse(stored);
+    return session.token || null;
+  } catch {
+    return null;
+  }
+}
+
 export function usePennyekartAgents(filters?: AgentFilters) {
   const [agents, setAgents] = useState<PennyekartAgent[]>([]);
   const [hierarchyTree, setHierarchyTree] = useState<PennyekartAgent[]>([]);
@@ -47,6 +58,7 @@ export function usePennyekartAgents(filters?: AgentFilters) {
     setError(null);
     
     try {
+      // Use direct Supabase query for reading (RLS allows SELECT for authenticated)
       let query = supabase
         .from("pennyekart_agents")
         .select(`
@@ -121,19 +133,53 @@ function buildHierarchyTree(agents: PennyekartAgent[]): PennyekartAgent[] {
 export function useAgentMutations() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createAgent = async (agentData: Omit<PennyekartAgent, "id" | "created_at" | "updated_at" | "panchayath" | "parent_agent" | "children">) => {
+  const callEdgeFunction = async (method: string, body?: object, params?: Record<string, string>) => {
+    const token = getAdminToken();
+    if (!token) {
+      throw new Error("Not authenticated as admin");
+    }
+
+    const url = new URL(`${import.meta.env.VITE_SUPABASE_URL || 'https://qnucqwniloioxsowdqzj.supabase.co'}/functions/v1/pennyekart-agents`);
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    }
+
+    const response = await fetch(url.toString(), {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-token": token,
+        "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFudWNxd25pbG9pb3hzb3dkcXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MDQ3NzcsImV4cCI6MjA4NDk4MDc3N30.hbmuNMcmmFs7-yCYtuJ34jbX6aqWaSDTiryD1VDHFKc",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Request failed");
+    }
+    return data;
+  };
+
+  const createAgent = async (agentData: Omit<PennyekartAgent, "id" | "created_at" | "updated_at" | "panchayath" | "parent_agent" | "children" | "created_by">) => {
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase
-        .from("pennyekart_agents")
-        .insert(agentData)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return { data, error: null };
+      const result = await callEdgeFunction("POST", { action: "create", agent: agentData });
+      return { data: result.data, error: null };
     } catch (err) {
       return { data: null, error: err instanceof Error ? err.message : "Failed to create agent" };
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createBulkAgents = async (agents: Array<Omit<PennyekartAgent, "id" | "created_at" | "updated_at" | "panchayath" | "parent_agent" | "children" | "created_by">>) => {
+    setIsSubmitting(true);
+    try {
+      const result = await callEdgeFunction("POST", { action: "bulk_create", agents });
+      return { data: result.data, count: result.count, error: null };
+    } catch (err) {
+      return { data: null, count: 0, error: err instanceof Error ? err.message : "Failed to create agents" };
     } finally {
       setIsSubmitting(false);
     }
@@ -142,15 +188,8 @@ export function useAgentMutations() {
   const updateAgent = async (id: string, updates: Partial<PennyekartAgent>) => {
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase
-        .from("pennyekart_agents")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return { data, error: null };
+      const result = await callEdgeFunction("PUT", { id, agent: updates });
+      return { data: result.data, error: null };
     } catch (err) {
       return { data: null, error: err instanceof Error ? err.message : "Failed to update agent" };
     } finally {
@@ -161,12 +200,7 @@ export function useAgentMutations() {
   const deleteAgent = async (id: string) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from("pennyekart_agents")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await callEdgeFunction("DELETE", undefined, { id });
       return { error: null };
     } catch (err) {
       return { error: err instanceof Error ? err.message : "Failed to delete agent" };
@@ -175,7 +209,7 @@ export function useAgentMutations() {
     }
   };
 
-  return { createAgent, updateAgent, deleteAgent, isSubmitting };
+  return { createAgent, createBulkAgents, updateAgent, deleteAgent, isSubmitting };
 }
 
 export const ROLE_LABELS: Record<AgentRole, string> = {

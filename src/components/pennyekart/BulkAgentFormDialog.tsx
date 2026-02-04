@@ -40,6 +40,7 @@ import {
   ROLE_LABELS, 
   ROLE_HIERARCHY,
   getParentRole,
+  useAgentMutations,
 } from "@/hooks/usePennyekartAgents";
 import { toast } from "sonner";
 
@@ -103,8 +104,8 @@ export function BulkAgentFormDialog({
   const [wardOptions, setWardOptions] = useState<string[]>([]);
   const [potentialParents, setPotentialParents] = useState<PennyekartAgent[]>([]);
   const [isLoadingPanchayaths, setIsLoadingPanchayaths] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { createAgent, createBulkAgents, updateAgent, isSubmitting } = useAgentMutations();
   const isEditing = !!agent;
 
   // Single agent form
@@ -290,7 +291,6 @@ export function BulkAgentFormDialog({
   }, [open, agent, defaultParentId, defaultRole, singleForm, bulkForm]);
 
   const onSubmitSingle = async (values: SingleAgentFormValues) => {
-    setIsSubmitting(true);
     try {
       // Team leaders don't have parents
       if (values.role === "team_leader") {
@@ -322,27 +322,21 @@ export function BulkAgentFormDialog({
         customer_count: values.customer_count,
         responsible_panchayath_ids: responsiblePanchayathIds,
         responsible_wards: responsibleWards,
+        is_active: true,
       };
 
       if (isEditing && agent) {
-        const { error } = await supabase
-          .from("pennyekart_agents")
-          .update(agentData)
-          .eq("id", agent.id);
-
-        if (error) throw error;
+        const { error } = await updateAgent(agent.id, agentData);
+        if (error) {
+          toast.error(error);
+          return;
+        }
         toast.success("Agent updated successfully");
       } else {
-        const { error } = await supabase
-          .from("pennyekart_agents")
-          .insert({ ...agentData, is_active: true });
-
+        const { error } = await createAgent(agentData);
         if (error) {
-          if (error.message.includes("unique") || error.code === "23505") {
-            toast.error("Mobile number already exists");
-            return;
-          }
-          throw error;
+          toast.error(error);
+          return;
         }
         toast.success("Agent created successfully");
       }
@@ -351,50 +345,39 @@ export function BulkAgentFormDialog({
       onSuccess();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save agent");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const onSubmitBulk = async (values: BulkAgentFormValues) => {
-    setIsSubmitting(true);
     try {
       const isPro = values.role === "pro";
       const isTeamLeader = values.role === "team_leader";
       const isCoordinator = values.role === "coordinator";
 
-      const agentsToInsert = values.agents.map(agent => ({
-        name: agent.name,
-        mobile: agent.mobile,
+      const agentsToInsert = values.agents.map(a => ({
+        name: a.name,
+        mobile: a.mobile,
         role: values.role,
         panchayath_id: values.panchayath_id,
-        ward: agent.ward,
+        ward: a.ward,
         parent_agent_id: isTeamLeader ? null : (values.parent_agent_id || null),
-        customer_count: isPro ? agent.customer_count : 0,
-        responsible_panchayath_ids: [],
-        responsible_wards: isCoordinator ? values.responsible_wards : [],
+        customer_count: isPro ? a.customer_count : 0,
+        responsible_panchayath_ids: [] as string[],
+        responsible_wards: isCoordinator ? values.responsible_wards : [] as string[],
         is_active: true,
       }));
 
-      const { error } = await supabase
-        .from("pennyekart_agents")
-        .insert(agentsToInsert);
-
+      const { error, count } = await createBulkAgents(agentsToInsert);
       if (error) {
-        if (error.message.includes("unique") || error.code === "23505") {
-          toast.error("One or more mobile numbers already exist");
-          return;
-        }
-        throw error;
+        toast.error(error);
+        return;
       }
 
-      toast.success(`${values.agents.length} agents created successfully`);
+      toast.success(`${count} agents created successfully`);
       onOpenChange(false);
       onSuccess();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create agents");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
