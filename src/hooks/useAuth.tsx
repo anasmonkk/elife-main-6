@@ -31,13 +31,38 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const ADMIN_TOKEN_KEY = "elife_admin_token";
 const ADMIN_DATA_KEY = "elife_admin_data";
 
+function getStoredAdminSession(): { token: string; data: AdminData } | null {
+  try {
+    const storedToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const storedAdminData = localStorage.getItem(ADMIN_DATA_KEY);
+    if (!storedToken || !storedAdminData) return null;
+
+    const [payload] = storedToken.split(".");
+    const decoded = JSON.parse(atob(payload));
+
+    if (decoded.exp && decoded.exp > Date.now()) {
+      return { token: storedToken, data: JSON.parse(storedAdminData) };
+    }
+
+    // Token expired, clear it
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    localStorage.removeItem(ADMIN_DATA_KEY);
+    return null;
+  } catch {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    localStorage.removeItem(ADMIN_DATA_KEY);
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<AppRole[]>([]);
+  const storedAdmin = getStoredAdminSession();
+  const [roles, setRoles] = useState<AppRole[]>(storedAdmin ? ["admin"] : []);
   const [isLoading, setIsLoading] = useState(true);
-  const [adminToken, setAdminToken] = useState<string | null>(null);
-  const [adminData, setAdminData] = useState<AdminData | null>(null);
+  const [adminToken, setAdminToken] = useState<string | null>(storedAdmin?.token ?? null);
+  const [adminData, setAdminData] = useState<AdminData | null>(storedAdmin?.data ?? null);
 
   const fetchUserRoles = async (userId: string) => {
     const { data, error } = await supabase
@@ -52,34 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return data?.map((r) => r.role) || [];
   };
-
-  // Check for stored admin token on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem(ADMIN_TOKEN_KEY);
-    const storedAdminData = localStorage.getItem(ADMIN_DATA_KEY);
-    
-    if (storedToken && storedAdminData) {
-      try {
-        // Validate token expiry
-        const [payload] = storedToken.split(".");
-        const decoded = JSON.parse(atob(payload));
-        
-        if (decoded.exp && decoded.exp > Date.now()) {
-          setAdminToken(storedToken);
-          setAdminData(JSON.parse(storedAdminData));
-          setRoles(["admin"]);
-        } else {
-          // Token expired, clear it
-          localStorage.removeItem(ADMIN_TOKEN_KEY);
-          localStorage.removeItem(ADMIN_DATA_KEY);
-        }
-      } catch (e) {
-        console.error("Error parsing admin token:", e);
-        localStorage.removeItem(ADMIN_TOKEN_KEY);
-        localStorage.removeItem(ADMIN_DATA_KEY);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     // Set up auth state listener FIRST
