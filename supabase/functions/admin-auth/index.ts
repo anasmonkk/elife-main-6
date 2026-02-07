@@ -20,17 +20,72 @@ serve(async (req) => {
     
     const { phone, password, action } = await req.json();
     
-    if (!phone || !password) {
-      return new Response(
-        JSON.stringify({ error: "Phone and password are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (action === "refresh") {
+      // Refresh admin data by admin ID - no phone/password needed
+      const adminToken = req.headers.get("x-admin-token");
+      if (!adminToken) {
+        return new Response(
+          JSON.stringify({ error: "Admin token required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      try {
+        const [payload] = adminToken.split(".");
+        const decoded = JSON.parse(atob(payload));
+        
+        if (!decoded.admin_id || (decoded.exp && decoded.exp < Date.now())) {
+          return new Response(
+            JSON.stringify({ error: "Invalid or expired token" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { data: admin, error: adminError } = await supabase
+          .from("admins")
+          .select("id, user_id, division_id, full_name, access_all_divisions, additional_division_ids, is_active")
+          .eq("id", decoded.admin_id)
+          .single();
+
+        if (adminError || !admin || !admin.is_active) {
+          return new Response(
+            JSON.stringify({ error: "Admin not found or inactive" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            admin: {
+              id: admin.id,
+              user_id: admin.user_id,
+              division_id: admin.division_id,
+              full_name: admin.full_name,
+              access_all_divisions: admin.access_all_divisions,
+              additional_division_ids: admin.additional_division_ids,
+            },
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch {
+        return new Response(
+          JSON.stringify({ error: "Invalid token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
-    // Normalize phone number (remove spaces, ensure format)
-    const normalizedPhone = phone.replace(/\s+/g, "").trim();
-    
     if (action === "login") {
+      if (!phone || !password) {
+        return new Response(
+          JSON.stringify({ error: "Phone and password are required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Normalize phone number (remove spaces, ensure format)
+      const normalizedPhone = phone.replace(/\s+/g, "").trim();
       console.log("Admin login attempt for phone:", normalizedPhone);
       
       // Find admin by phone

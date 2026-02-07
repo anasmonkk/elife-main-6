@@ -81,6 +81,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    const refreshAdminData = async () => {
+      if (!adminToken) return;
+      
+      try {
+        const { data, error } = await supabase.functions.invoke("admin-auth", {
+          body: { action: "refresh" },
+          headers: { "x-admin-token": adminToken },
+        });
+
+        if (!error && data?.success && data?.admin) {
+          const updatedAdmin: AdminData = {
+            id: data.admin.id,
+            user_id: data.admin.user_id,
+            division_id: data.admin.division_id,
+            access_all_divisions: data.admin.access_all_divisions,
+            additional_division_ids: data.admin.additional_division_ids,
+          };
+          setAdminData(updatedAdmin);
+          localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(updatedAdmin));
+        }
+      } catch (err) {
+        console.error("Error refreshing admin data:", err);
+      }
+    };
+
+    refreshAdminData();
+  }, [adminToken]);
+
+  useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
