@@ -219,7 +219,7 @@ export function VirtualOfficeAssignments() {
                     <SelectItem value="none">Not assigned</SelectItem>
                     {eligibleSecretaries.map((agent) => (
                       <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name} · {roles.find((role) => role.key === agent.role)?.key.replaceAll("_", " ") || agent.role} · Ward {agent.ward}
+                        {agent.name} · {roles.find((role) => role.key === agent.role)?.key.replace(/_/g, " ") || agent.role} · Ward {agent.ward}
                       </SelectItem>
                     ))}
                   </SelectContent>
