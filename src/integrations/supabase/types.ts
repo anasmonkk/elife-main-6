@@ -1140,6 +1140,56 @@ export type Database = {
           },
         ]
       }
+      panchayath_virtual_office_public: {
+        Row: {
+          code: string | null
+          district: string | null
+          office_manager_name: string | null
+          office_manager_role: string | null
+          office_manager_ward: string | null
+          office_secretary_name: string | null
+          office_secretary_role: string | null
+          office_secretary_ward: string | null
+          panchayath_id: string
+          panchayath_name: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          district?: string | null
+          office_manager_name?: string | null
+          office_manager_role?: string | null
+          office_manager_ward?: string | null
+          office_secretary_name?: string | null
+          office_secretary_role?: string | null
+          office_secretary_ward?: string | null
+          panchayath_id: string
+          panchayath_name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          district?: string | null
+          office_manager_name?: string | null
+          office_manager_role?: string | null
+          office_manager_ward?: string | null
+          office_secretary_name?: string | null
+          office_secretary_role?: string | null
+          office_secretary_ward?: string | null
+          panchayath_id?: string
+          panchayath_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panchayath_virtual_office_public_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: true
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       panchayath_virtual_offices: {
         Row: {
           assigned_by: string | null
@@ -2206,44 +2256,7 @@ export type Database = {
       }
     }
     Views: {
-      panchayath_virtual_office_public: {
-        Row: {
-          code: string | null
-          district: string | null
-          office_manager_name: string | null
-          office_manager_role: string | null
-          office_manager_ward: string | null
-          office_secretary_name: string | null
-          office_secretary_role: string | null
-          office_secretary_ward: string | null
-          panchayath_id: string | null
-          panchayath_name: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_pennyekart_agents_role"
-            columns: ["office_secretary_role"]
-            isOneToOne: false
-            referencedRelation: "pennyekart_agent_roles"
-            referencedColumns: ["key"]
-          },
-          {
-            foreignKeyName: "fk_pennyekart_agents_role"
-            columns: ["office_manager_role"]
-            isOneToOne: false
-            referencedRelation: "pennyekart_agent_roles"
-            referencedColumns: ["key"]
-          },
-          {
-            foreignKeyName: "panchayath_virtual_offices_panchayath_id_fkey"
-            columns: ["panchayath_id"]
-            isOneToOne: true
-            referencedRelation: "panchayaths"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       get_user_division: { Args: { _user_id: string }; Returns: string }
@@ -2253,6 +2266,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      refresh_panchayath_virtual_office_public: {
+        Args: { _panchayath_id: string }
+        Returns: undefined
       }
     }
     Enums: {
