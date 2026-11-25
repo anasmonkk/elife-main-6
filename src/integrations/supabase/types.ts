@@ -2206,25 +2206,46 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      panchayath_virtual_office_public: {
+        Row: {
+          code: string | null
+          district: string | null
+          office_manager_name: string | null
+          office_manager_role: string | null
+          office_manager_ward: string | null
+          office_secretary_name: string | null
+          office_secretary_role: string | null
+          office_secretary_ward: string | null
+          panchayath_id: string | null
+          panchayath_name: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_pennyekart_agents_role"
+            columns: ["office_secretary_role"]
+            isOneToOne: false
+            referencedRelation: "pennyekart_agent_roles"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "fk_pennyekart_agents_role"
+            columns: ["office_manager_role"]
+            isOneToOne: false
+            referencedRelation: "pennyekart_agent_roles"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "panchayath_virtual_offices_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: true
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      get_public_virtual_offices: {
-        Args: never
-        Returns: {
-          code: string
-          district: string
-          office_manager_name: string
-          office_manager_role: string
-          office_manager_ward: string
-          office_secretary_name: string
-          office_secretary_role: string
-          office_secretary_ward: string
-          panchayath_id: string
-          panchayath_name: string
-          updated_at: string
-        }[]
-      }
       get_user_division: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
