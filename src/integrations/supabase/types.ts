@@ -1140,6 +1140,55 @@ export type Database = {
           },
         ]
       }
+      panchayath_virtual_offices: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          office_manager_agent_id: string | null
+          office_secretary_agent_id: string | null
+          panchayath_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          office_manager_agent_id?: string | null
+          office_secretary_agent_id?: string | null
+          panchayath_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          office_manager_agent_id?: string | null
+          office_secretary_agent_id?: string | null
+          panchayath_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panchayath_virtual_offices_office_manager_agent_id_fkey"
+            columns: ["office_manager_agent_id"]
+            isOneToOne: false
+            referencedRelation: "pennyekart_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "panchayath_virtual_offices_office_secretary_agent_id_fkey"
+            columns: ["office_secretary_agent_id"]
+            isOneToOne: false
+            referencedRelation: "pennyekart_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "panchayath_virtual_offices_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: true
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       panchayaths: {
         Row: {
           code: string | null
@@ -2160,6 +2209,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_virtual_offices: {
+        Args: never
+        Returns: {
+          code: string
+          district: string
+          office_manager_name: string
+          office_manager_role: string
+          office_manager_ward: string
+          office_secretary_name: string
+          office_secretary_role: string
+          office_secretary_ward: string
+          panchayath_id: string
+          panchayath_name: string
+          updated_at: string
+        }[]
+      }
       get_user_division: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
