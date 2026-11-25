@@ -1144,9 +1144,11 @@ export type Database = {
         Row: {
           code: string | null
           district: string | null
+          office_manager_mobile: string | null
           office_manager_name: string | null
           office_manager_role: string | null
           office_manager_ward: string | null
+          office_secretary_mobile: string | null
           office_secretary_name: string | null
           office_secretary_role: string | null
           office_secretary_ward: string | null
@@ -1157,9 +1159,11 @@ export type Database = {
         Insert: {
           code?: string | null
           district?: string | null
+          office_manager_mobile?: string | null
           office_manager_name?: string | null
           office_manager_role?: string | null
           office_manager_ward?: string | null
+          office_secretary_mobile?: string | null
           office_secretary_name?: string | null
           office_secretary_role?: string | null
           office_secretary_ward?: string | null
@@ -1170,9 +1174,11 @@ export type Database = {
         Update: {
           code?: string | null
           district?: string | null
+          office_manager_mobile?: string | null
           office_manager_name?: string | null
           office_manager_role?: string | null
           office_manager_ward?: string | null
+          office_secretary_mobile?: string | null
           office_secretary_name?: string | null
           office_secretary_role?: string | null
           office_secretary_ward?: string | null

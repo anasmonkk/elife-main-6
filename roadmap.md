@@ -2,4 +2,4 @@
 
 - [ ] Replace only the selected broad database policies with scoped access.
 - [ ] Route the affected public, member, and admin screens through scoped server actions.
-- [ ] Verify application flows, confirm the selected scan findings, and record completion.
+- [ ] Verify application flows, confirm the selected scan findings, and record completion.- [ ] Complete the Panchayath Virtual Office home view and expose its assignments in Locations Management.

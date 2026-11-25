@@ -1,4 +1,4 @@
 - Keep Samrambhaka password changes and recovery inside `samrabhaka-auth`, and administrator resets inside the authenticated Pennyekart agents function, so credential changes remain server-authorized.
 - Bundle-text program questions store field definitions in question options and responses as arrays of objects, enabling repeatable grouped entries without a separate table.
 - Keep conditional follow-up answer configuration, validation, and display helpers shared across program forms and registration views, so answer behavior stays consistent.
-- Keep question reordering logic in `src/lib/formQuestionOrder.ts` so arrow controls and drag-and-drop share tested saved-order behavior.
+- Keep question reordering logic in `src/lib/formQuestionOrder.ts` so arrow controls and drag-and-drop share tested saved-order behavior.- Keep the Panchayath Virtual Office as a separate home-page view with a switch back to Classic Home, so local office content stays distinct without removing the existing home experience.
